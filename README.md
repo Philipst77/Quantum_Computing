@@ -1,8 +1,9 @@
 # Quantum Circuit Engine (QCE)
 
-[![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)]()
-[![Build System](https://img.shields.io/badge/build-CMake-green.svg)]()
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]()
+[![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
+[![Build System](https://img.shields.io/badge/build-CMake-green.svg)](https://cmake.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 
 A modular quantum circuit simulation framework implemented in modern C++17, providing explicit statevector-based modeling of quantum computation.
 
