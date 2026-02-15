@@ -1,39 +1,68 @@
-# QCSim-Lite
+# Quantum Circuit Engine (QCE)
 
-A modular **quantum computing simulator** written in C++17.  
-This project is an independent reimplementation inspired by existing quantum simulators, designed for learning and extensibility.  
+[![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)]()
+[![Build System](https://img.shields.io/badge/build-CMake-green.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]()
 
----
-
-## 🚀 Features
-- **Core simulator**
-  - Qubit register and statevector representation
-  - Support for common quantum gates (X, Y, Z, H, CNOT, rotations)
-  - Probabilistic measurement
-- **Algorithms**
-  - Grover’s search
-  - Quantum Fourier Transform (QFT)
-  - Quantum teleportation
-  - (More coming soon: Shor, BB84, Deutsch–Jozsa, VQE, QAOA)
-- **Error Correction**
-  - 3-qubit bit-flip and phase-flip codes
-  - Shor’s 9-qubit code (planned)
-- **Optimization**
-  - Variational Quantum Eigensolver (VQE)
-  - Quantum Approximate Optimization Algorithm (QAOA)
+A modular quantum circuit simulation framework implemented in modern C++17, providing explicit statevector-based modeling of quantum computation.
 
 ---
 
-## 📂 Project Structure
+## Overview
+
+Quantum Circuit Engine (QCE) is a from-first-principles implementation of quantum circuit simulation using explicit complex statevector evolution. The framework models qubit registers, unitary transformations, and probabilistic measurement through linear algebra operations over complex amplitudes.
+
+The architecture cleanly separates core simulation primitives from higher-level algorithm modules, enabling structured experimentation with quantum algorithms, error correction schemes, and variational optimization methods. The system is designed with modular compilation units, backend extensibility, and performance-aware memory management.
+
+---
+
+## Core Capabilities
+
+### 1. Statevector Simulation
+
+- Explicit 2^n-dimensional complex amplitude representation  
+- Deterministic unitary evolution via matrix–vector transformations  
+- Probabilistic measurement with state collapse  
+- Bitwise qubit indexing and amplitude manipulation  
+
+### 2. Quantum Gates
+
+- Single-qubit gates: X, Y, Z, H  
+- Multi-qubit gates: CNOT  
+- Parameterized rotation gates  
+- Support for extensible custom gate definitions  
+
+### 3. Implemented Algorithms
+
+- Grover’s Search  
+- Quantum Fourier Transform (QFT)  
+- Quantum Teleportation  
+
+### 4. Error Correction
+
+- Three-qubit bit-flip code  
+- Three-qubit phase-flip code  
+- Modular framework for extending to larger codes  
+
+### 5. Variational & Hybrid Methods
+
+- Variational Quantum Eigensolver (VQE)  
+- Quantum Approximate Optimization Algorithm (QAOA)  
+- Parameterized quantum circuits for hybrid classical–quantum experimentation  
+
+---
+
+## Project Structure
+
 ```text
-qcsim/
+qce/
 │
-├── core/              # Core classes (QubitRegister, QuantumGate, Utils)
-├── simulators/        # Different backends (statevector, MPS, Clifford)
-├── algorithms/        # Quantum algorithms (Grover, QFT, Shor, etc.)
-├── error_correction/  # Error correction codes
-├── optimization/      # VQE, QAOA
-├── examples/          # Example circuits (Bell state, teleportation, Grover)
-├── tests/             # Unit & integration tests
-├── cmake/             # CMake modules (optional)
+├── core/              # Core primitives (QubitRegister, QuantumGate, utilities)
+├── simulators/        # Backend implementations (statevector, experimental)
+├── algorithms/        # Algorithm implementations (Grover, QFT, teleportation)
+├── error_correction/  # Error correction modules
+├── optimization/      # Variational methods (VQE, QAOA)
+├── examples/          # Demonstration circuits
+├── tests/             # Unit and integration tests
+├── cmake/             # CMake configuration modules
 └── CMakeLists.txt
