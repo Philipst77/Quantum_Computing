@@ -66,3 +66,29 @@ qce/
 ├── tests/             # Unit and integration tests
 ├── cmake/             # CMake configuration modules
 └── CMakeLists.txt
+---
+
+## Design Principles
+
+- Explicit linear algebra–based state evolution  
+- Clear separation of simulation backend and algorithm layer  
+- Backend extensibility by design  
+- Performance-conscious memory handling in C++17  
+- Modular architecture with CMake build system  
+
+---
+
+## Mathematical Foundation
+
+QCE represents an n-qubit system as a complex vector in a 2^n-dimensional Hilbert space. Gate application corresponds to multiplication by unitary matrices, while measurement is modeled via probabilistic amplitude collapse. Variational modules implement parameterized unitary layers optimized through classical feedback loops.
+
+---
+
+## Build Instructions
+
+```bash
+mkdir build
+cd build
+cmake ..
+make
+```
