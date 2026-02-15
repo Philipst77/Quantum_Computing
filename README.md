@@ -77,6 +77,7 @@ qce/
 - Modular architecture with CMake build system  
 
 ---
+```
 
 ## Mathematical Foundation
 
