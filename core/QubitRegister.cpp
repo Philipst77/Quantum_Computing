@@ -72,20 +72,18 @@ void QubitRegister::applyControlledGate(int control, int target,
     size_t tBit = 1ULL << target;
 
     for (size_t i = 0; i < n; ++i) {
-
-        // Only act when control = 1
+        // Only act when control = 1 and target = 0
+        // Process each pair once from the target=0 side
         if ((i & cBit) == 0) continue;
+        if ((i & tBit) != 0) continue;
 
-        size_t j = i ^ tBit;
+        size_t j = i | tBit;  // partner state with target = 1
 
-        // Prevent double processing
-        if (i < j) {
-            Complex a = state_[i];
-            Complex b = state_[j];
+        Complex a = state_[i];
+        Complex b = state_[j];
 
-            state_[i] = matrix[0][0] * a + matrix[0][1] * b;
-            state_[j] = matrix[1][0] * a + matrix[1][1] * b;
-        }
+        state_[i] = matrix[0][0] * a + matrix[0][1] * b;
+        state_[j] = matrix[1][0] * a + matrix[1][1] * b;
     }
 }
 
@@ -100,11 +98,14 @@ void QubitRegister::applyToffoliGate(int control1, int control2, int target) {
     size_t tBit  = 1ULL << target;
 
     for (size_t i = 0; i < n; ++i) {
-        if ((i & c1Bit) && (i & c2Bit)) {
-            size_t j = i ^ tBit;
-            if (i < j)
-                std::swap(state_[i], state_[j]);
-        }
+        // Both controls must be 1, target must be 0
+        // Process each pair once from the target=0 side
+        if (!(i & c1Bit)) continue;
+        if (!(i & c2Bit)) continue;
+        if (  i & tBit  ) continue;
+
+        size_t j = i | tBit;  // partner state with target = 1
+        std::swap(state_[i], state_[j]);
     }
 }
 

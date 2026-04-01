@@ -115,22 +115,19 @@ void testControlledGates() {
     Gates::applyH(q, 1);
     double theta = M_PI;
     Gates::applyCRz(q, 0, 1, theta);
-    // Control is |1>, so Rz(π) applied to target
-    // Rz(π)|+>[0] = e^{-iπ/2}/√2, |1> component gets e^{+iπ/2}/√2
     TEST("CRz(π) with control=|1>: normalized", q.isNormalized());
 
     // CP gate: controlled phase
     QubitRegister q2(2);
     Gates::applyX(q2, 0); Gates::applyX(q2, 1); // |11>
     Gates::applyCP(q2, 0, 1, M_PI);
-    // CP(π)|11> = -|11>
     TEST("CP(π)|11> phase = -1", NEAR(q2[3].real(), -1.0));
 
     // CY gate
     QubitRegister q3(2);
-    Gates::applyX(q3, 0); // |10>
+    Gates::applyX(q3, 0); // |01> -> index 1
     Gates::applyCY(q3, 0, 1);
-    // CY|10>: target gets Y applied → Y|0> = i|1> → |11> with phase i
+    // CY|01>: control=q0=1, Y applied to q1 -> i|11> = index 3
     TEST("CY|10>: target flipped", NEAR(std::abs(q3[3]), 1.0));
     TEST("CY|10>: phase is i", NEAR(q3[3].imag(), 1.0));
 }
@@ -193,13 +190,15 @@ void testStatevectorSimulator() {
 
     // Toffoli (CCX) via simulator
     StatevectorSimulator sim4(3);
-    sim4.x(0).x(1).ccx(0, 1, 2); // |110> -> |111>
+    sim4.x(0).x(1).ccx(0, 1, 2); // qubits 0,1 set -> index 3, after CCX -> index 7
     TEST("CCX via sim: |110>->|111>", NEAR(sim4.probabilities()[7], 1.0));
 
     // SWAP via simulator
+    // x(0) sets qubit 0 (LSB) -> index 1
+    // swap(0,1) moves amplitude to qubit 1 (LSB) -> index 2
     StatevectorSimulator sim5(2);
-    sim5.x(0).swap(0, 1); // |10> -> |01>
-    TEST("SWAP via sim: |10>->|01>", NEAR(sim5.probabilities()[1], 1.0));
+    sim5.x(0).swap(0, 1);
+    TEST("SWAP via sim: |10>->|01>", NEAR(sim5.probabilities()[2], 1.0));  // FIXED: index 2
 
     // mostLikelyOutcome
     StatevectorSimulator sim6(2);
@@ -227,7 +226,6 @@ void testTensorProduct() {
     QubitRegister q0(1), q1(1);
     Gates::applyX(q1, 0); // q1 = |1>
     auto combined = QubitRegister::tensorProduct(q0, q1);
-    // |0> ⊗ |1> = |01>
     TEST("|0>⊗|1> = |01>: amp[1]=1", NEAR(std::abs(combined[1]), 1.0));
     TEST("|0>⊗|1> = |01>: amp[0]=0", NEAR(std::abs(combined[0]), 0.0));
     TEST("|0>⊗|1>: 2 qubits", combined.numQubits() == 2);

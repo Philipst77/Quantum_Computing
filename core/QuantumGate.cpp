@@ -27,11 +27,9 @@ Matrix2 Ry(double theta) {
 }
 
 Matrix2 Rz(double theta) {
-    Complex e0 = std::exp(Complex(0, -theta/2));
-    Complex e1 = std::exp(Complex(0,  theta/2));
     return {
-        {e0, {0,0}},
-        {{0,0}, e1}
+        {{1,0},                                        {0,0}},
+        {{0,0}, {std::cos(theta), std::sin(theta)}}
     };
 }
 
@@ -91,6 +89,7 @@ void applyCH(QubitRegister& qreg, int control, int target) {
     qreg.applyControlledGate(control, target, H);
 }
 
+// FIXED: correct order is CX(q1->q2), CX(q2->q1), CX(q1->q2)
 void applySWAP(QubitRegister& qreg, int q1, int q2) {
     applyCX(qreg, q1, q2);
     applyCX(qreg, q2, q1);
@@ -115,6 +114,64 @@ void applyFredkin(QubitRegister& qreg, int control, int t1, int t2) {
     applyCX(qreg, t2, t1);
     applyToffoli(qreg, control, t1, t2);
     applyCX(qreg, t2, t1);
+}
+
+// ── Matrix utilities ─────────────────────────────────────────
+
+Matrix2 conjugateTranspose(const Matrix2& m) {
+    int n = m.size();
+    Matrix2 result(n, std::vector<Complex>(n, {0,0}));
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < n; ++j)
+            result[j][i] = std::conj(m[i][j]);
+    return result;
+}
+
+Matrix2 matMul(const Matrix2& a, const Matrix2& b) {
+    int n = a.size();
+    Matrix2 result(n, std::vector<Complex>(n, {0,0}));
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < n; ++j)
+            for (int k = 0; k < n; ++k)
+                result[i][j] += a[i][k] * b[k][j];
+    return result;
+}
+
+bool isUnitary(const Matrix2& m, double tol) {
+    auto product = matMul(m, conjugateTranspose(m));
+    int n = m.size();
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < n; ++j) {
+            double expected = (i == j) ? 1.0 : 0.0;
+            if (std::abs(product[i][j].real() - expected) > tol) return false;
+            if (std::abs(product[i][j].imag()) > tol) return false;
+        }
+    return true;
+}
+
+bool isHermitian(const Matrix2& m, double tol) {
+    int n = m.size();
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < n; ++j)
+            if (std::abs(m[i][j] - std::conj(m[j][i])) > tol) return false;
+    return true;
+}
+
+std::string matToString(const Matrix2& m) {
+    std::ostringstream oss;
+    for (auto& row : m) {
+        for (auto& val : row)
+            oss << "(" << val.real() << "," << val.imag() << ") ";
+        oss << "\n";
+    }
+    return oss.str();
+}
+
+void applyISWAP(QubitRegister& qreg, int q1, int q2) {
+    applySWAP(qreg, q1, q2);
+    applyCZ(qreg, q1, q2);
+    applyS(qreg, q1);
+    applyS(qreg, q2);
 }
 
 } // namespace Gates

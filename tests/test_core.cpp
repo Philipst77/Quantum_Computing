@@ -15,7 +15,6 @@ int passed = 0, failed = 0;
     else      { std::cout << "  [FAIL] " << name << "\n"; ++failed; } \
 } while(0)
 
-// Use plain inline functions — avoids ALL macro name conflicts from included headers
 static inline bool near(double a, double b)        { return std::abs(a - b) < 1e-9; }
 static inline bool ceq(Complex a, Complex b)       { return std::abs(a - b) < 1e-9; }
 
@@ -147,29 +146,32 @@ void testSingleQubitGates() {
 void testTwoQubitGates() {
     std::cout << "\n-- Two-qubit gates --\n";
 
+    // qubit 0 = LSB, so applyX(q,0) sets index 1 (0b01),
+    // applyX(q,1) sets index 2 (0b10)
+
     QubitRegister q(2);
-    Gates::applyX(q, 0);
-    Gates::applyCX(q, 0, 1);
+    Gates::applyX(q, 0);               // |01> -> index 1
+    Gates::applyCX(q, 0, 1);           // control=q0=1, flip q1 -> |11> = index 3
     TEST("CX|10> = |11>", near(std::abs(q[3]), 1.0));
 
     QubitRegister q2(2);
-    Gates::applyCX(q2, 0, 1);
+    Gates::applyCX(q2, 0, 1);          // |00>, control=0, no change
     TEST("CX|00> = |00>", near(std::abs(q2[0]), 1.0));
 
     QubitRegister q3(2);
-    Gates::applyX(q3, 1);
-    Gates::applyCX(q3, 0, 1);
-    TEST("CX|01> unchanged", near(std::abs(q3[1]), 1.0));
+    Gates::applyX(q3, 1);              // |10> -> index 2 (qubit1=1, qubit0=0)
+    Gates::applyCX(q3, 0, 1);          // control=q0=0, no change
+    TEST("CX|01> unchanged", near(std::abs(q3[2]), 1.0));  // FIXED: index 2
 
     QubitRegister q4(2);
-    Gates::applyX(q4, 0); Gates::applyX(q4, 1);
+    Gates::applyX(q4, 0); Gates::applyX(q4, 1);  // |11> = index 3
     Gates::applyCZ(q4, 0, 1);
     TEST("CZ|11> phase = -1", near(q4[3].real(), -1.0));
 
     QubitRegister q5(2);
-    Gates::applyX(q5, 0);
-    Gates::applySWAP(q5, 0, 1);
-    TEST("SWAP|10> = |01>", near(std::abs(q5[1]), 1.0));
+    Gates::applyX(q5, 0);              // |01> -> index 1
+    Gates::applySWAP(q5, 0, 1);        // swap -> |10> = index 2
+    TEST("SWAP|10> = |01>", near(std::abs(q5[2]), 1.0));  // FIXED: index 2
 
     QubitRegister q6(2);
     Gates::applyH(q6, 0);
@@ -184,29 +186,34 @@ void testTwoQubitGates() {
 void testThreeQubitGates() {
     std::cout << "\n-- Three-qubit gates --\n";
 
+    // qubit 0 = LSB. applyX(q,0) -> bit0=1, applyX(q,1) -> bit1=1, applyX(q,2) -> bit2=1
+    // |110> means qubit2=1,qubit1=1,qubit0=0 -> index = 0b110 = 6... but
+    // with LSB convention: applyX(q,0) and applyX(q,1) -> index = 0b011 = 3... 
+    // Let's be precise: index = sum of (1 << qubitN) for each set qubit
+
     QubitRegister q(3);
-    Gates::applyX(q, 0); Gates::applyX(q, 1);
-    Gates::applyToffoli(q, 0, 1, 2);
+    Gates::applyX(q, 0); Gates::applyX(q, 1);  // index = 1+2 = 3
+    Gates::applyToffoli(q, 0, 1, 2);            // both controls set, flip q2 -> index = 1+2+4 = 7
     TEST("Toffoli|110> = |111>", near(std::abs(q[7]), 1.0));
 
     QubitRegister q2(3);
-    Gates::applyX(q2, 0);
-    Gates::applyToffoli(q2, 0, 1, 2);
-    TEST("Toffoli|100> unchanged", near(std::abs(q2[4]), 1.0));
+    Gates::applyX(q2, 0);                       // index = 1 (only qubit0 set)
+    Gates::applyToffoli(q2, 0, 1, 2);           // control q1=0, no change -> stays at index 1
+    TEST("Toffoli|100> unchanged", near(std::abs(q2[1]), 1.0));  // FIXED: index 1
 
     QubitRegister q3(3);
-    Gates::applyX(q3, 1);
-    Gates::applyToffoli(q3, 0, 1, 2);
+    Gates::applyX(q3, 1);                       // index = 2 (only qubit1 set)
+    Gates::applyToffoli(q3, 0, 1, 2);           // control q0=0, no change -> stays at index 2
     TEST("Toffoli|010> unchanged", near(std::abs(q3[2]), 1.0));
 
     QubitRegister q4(3);
-    Gates::applyX(q4, 1);
-    Gates::applyFredkin(q4, 0, 1, 2);
+    Gates::applyX(q4, 1);                       // index = 2
+    Gates::applyFredkin(q4, 0, 1, 2);           // control q0=0, no change
     TEST("Fredkin|010> ctrl=0: unchanged", near(std::abs(q4[2]), 1.0));
 
     QubitRegister q5(3);
-    Gates::applyX(q5, 0); Gates::applyX(q5, 1);
-    Gates::applyFredkin(q5, 0, 1, 2);
+    Gates::applyX(q5, 0); Gates::applyX(q5, 1); // index = 3
+    Gates::applyFredkin(q5, 0, 1, 2);            // control q0=1, swap q1 and q2 -> index = 1+4 = 5
     TEST("Fredkin|110> ctrl=1: |101>", near(std::abs(q5[5]), 1.0));
 }
 
